@@ -3,14 +3,15 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 init();
 
+
 function init() {
     const minLatitude = -50.29;
     const maxLatitude = 72.5;
     const minLongitude = -23.9;
     const maxLongitude = 190.2;
 
-    let scene = new THREE.Scene();
-    let camera = new THREE.PerspectiveCamera(
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
@@ -19,9 +20,27 @@ function init() {
     
     camera.position.z = 5;
 
-    let renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
   
     let cameraControls = new OrbitControls(camera, renderer.domElement);
+    
+    plane(0, 0, 0, 10, 10, scene);
+
+    loop(scene, camera, renderer);
 }
+
+function loop(scene, camera, renderer) {
+    requestAnimationFrame(loop);
+    renderer.render(scene, camera);
+}
+
+function plane(x, y, z, width, height, scene) {
+    const geometry = new THREE.PlaneGeometry(width, height);
+    const material = new THREE.MeshBasicMaterial({});
+    const plane = new THREE.Mesh(geometry, material);
+    plane.position.set(x, y, z);
+    scene.add(plane);
+}
+
