@@ -1,0 +1,1 @@
+# Mapa de terremotos en Europa-Asia (2023 Nov - 2024 Nov)
