@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { loadEarthquakeData } from "./utils/earthquake.js";
 
 init();
 
 function init() {
-    const minLatitude = -50.29;
-    const maxLatitude = 72.5;
-    const minLongitude = -23.9;
-    const maxLongitude = 190.2;
+    const MinLatitude = -50.29;
+    const MaxLatitude = 72.5;
+    const MinLongitude = -23.9;
+    const MaxLongitude = 190.2;
+	const EarthquakeCsvFile = "assets/earthquakes.csv";
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -19,15 +21,17 @@ function init() {
 
     camera.position.z = 5;
 
- 	const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+ 	const Renderer = new THREE.WebGLRenderer();
+    Renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(Renderer.domElement);
 
-    let cameraControls = new OrbitControls(camera, renderer.domElement);
+    const CameraControls = new OrbitControls(camera, Renderer.domElement);
 
     plane(0, 0, 0, 6.5, 5, scene);
+	
+	loadEarthquakeData(EarthquakeCsvFile);
 
-    loop(scene, camera, renderer);
+    loop(scene, camera, Renderer);
 }
 
 function loop(scene, camera, renderer) {
