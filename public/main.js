@@ -73,6 +73,16 @@ function drawEarthquakes(scene) {
     const filteredEarthquakes = filterEarthquakes(earthquakes);
     removeNonVisibleEarthquakes(scene, filteredEarthquakes);
     addNewEarthquakes(scene, filteredEarthquakes);
+    updateEarthquakeColors(scene);
+}
+
+function filterEarthquakes(earthquakes) {
+    // Mostrar terremotos en durante 4 horas
+    const endDateTime = new Date(currentDateTime.getTime() + 14400000);
+    return earthquakes.filter((earthquake) => {
+        const dateTime = new Date(earthquake.dateTime);
+        return dateTime >= currentDateTime && dateTime < endDateTime;
+    });
 }
 
 function removeNonVisibleEarthquakes(scene, visibleEarthquakes) {
@@ -95,9 +105,15 @@ function removeNonVisibleEarthquakes(scene, visibleEarthquakes) {
 
 function addNewEarthquakes(scene, visibleEarthquakes) {
     visibleEarthquakes.forEach((earthquake) => {
-        if (!currentEarthquakes.includes(earthquake)) {
+        let found = false;
+        currentEarthquakes.forEach((currentEarthquake) => {
+            if (earthquake.dateTime === currentEarthquake.earthquake.dateTime) {
+                found = true;
+            }
+        });
+        if (!found) {
             const geometry = new THREE.SphereGeometry(0.05, 4, 4);
-            const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            const material = new THREE.MeshBasicMaterial({ color: 0xdd0000 });
             const latitude = parseFloat(earthquake.latitude);
             const longitude = parseFloat(earthquake.longitude);
             const x = ((longitude + 180) / 360) * mapWidth - mapWidth / 2;
@@ -111,11 +127,10 @@ function addNewEarthquakes(scene, visibleEarthquakes) {
     });
 }
 
-function filterEarthquakes(earthquakes) {
-    const endDateTime = new Date(currentDateTime.getTime() + 3600000);
-    return earthquakes.filter((earthquake) => {
-        const dateTime = new Date(earthquake.dateTime);
-        return dateTime >= currentDateTime && dateTime < endDateTime;
+function updateEarthquakeColors(scene) {
+    currentEarthquakes.forEach((earthquake) => {
+        const dateTime = new Date(earthquake.earthquake.dateTime);
+        earthquake.mesh.material.color.add(new THREE.Color(0x001100));
     });
 }
 
