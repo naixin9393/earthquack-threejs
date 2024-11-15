@@ -5,6 +5,7 @@ import { loadEarthquakeData } from "./utils/earthquake.js";
 let currentDateTime;
 let earthquakes;
 let currentEarthquakes = [];
+let dateElement;
 const mapWidth = 6.5;
 const mapHeight = 5;
 
@@ -13,6 +14,7 @@ init();
 function init() {
     const startDateTime = new Date(2023, 11, 1);
     currentDateTime = startDateTime;
+
     const MinLatitude = -50.29;
     const MaxLatitude = 72.5;
     const MinLongitude = -23.9;
@@ -26,6 +28,8 @@ function init() {
         0.1,
         1000
     );
+
+    createDateElement();
 
     camera.position.z = 5;
 
@@ -46,8 +50,23 @@ function init() {
 function loop(scene, camera, renderer) {
     requestAnimationFrame(() => loop(scene, camera, renderer));
     currentDateTime = new Date(currentDateTime.getTime() + 100000);
+    dateElement.innerHTML = currentDateTime.toString();
     drawEarthquakes(scene);
     renderer.render(scene, camera);
+}
+
+function createDateElement() {
+    dateElement = document.createElement("div");
+    dateElement.style.position = "absolute";
+    dateElement.style.width = "100%";
+    dateElement.style.textAlign = "center";
+    dateElement.style.color = "#fff";
+    dateElement.style.fontWeight = "bold";
+    dateElement.style.backgroundColor = "black";
+    dateElement.style.zIndex = "1";
+    dateElement.style.fontFamily = "Monospace";
+    dateElement.innerHTML = "";
+    document.body.appendChild(dateElement);
 }
 
 function drawEarthquakes(scene) {
