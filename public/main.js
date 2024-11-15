@@ -8,11 +8,13 @@ let earthquakes;
 let currentEarthquakes = [];
 let dateElement;
 let guiDate;
+let play = 1;
 const mapWidth = 6.5;
 const mapHeight = 5;
 const startDateTime = new Date(2023, 10, 1);
 const endDateTime = new Date(2024, 10, 1);
 const gui = new GUI();
+const container = document.getElementById("canvas");
 
 init();
 
@@ -28,7 +30,7 @@ function init() {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
         75,
-        window.innerWidth / window.innerHeight,
+        container.clientWidth / container.clientHeight,
         0.1,
         1000
     );
@@ -39,8 +41,8 @@ function init() {
     camera.position.z = 5;
 
     const Renderer = new THREE.WebGLRenderer();
-    Renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(Renderer.domElement);
+    Renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(Renderer.domElement);
 
     const CameraControls = new OrbitControls(camera, Renderer.domElement);
 
@@ -64,10 +66,10 @@ function updateTime() {
     if (currentDateTime >= endDateTime) {
         currentDateTime = startDateTime;
     }
-    currentDateTime = new Date(currentDateTime.getTime() + 100000);
-    guiDate.dateProgress = (currentDateTime - startDateTime) / (endDateTime - startDateTime) * 100;
-    // guiDate.dateProgress = 5;
-    // gui.refresh();
+    currentDateTime = new Date(currentDateTime.getTime() + play * 100000);
+    guiDate.dateProgress =
+        ((currentDateTime - startDateTime) / (endDateTime - startDateTime)) *
+        100;
 }
 
 function createGui() {
@@ -77,24 +79,42 @@ function createGui() {
         month: currentDateTime.getMonth() + 1,
         year: currentDateTime.getFullYear(),
         setDate() {
-            const targetDateTime = new Date(guiDate.year, guiDate.month - 1, guiDate.day);
-            if (targetDateTime >= startDateTime && targetDateTime <= new Date(2024, 10, 30)) {
+            const targetDateTime = new Date(
+                guiDate.year,
+                guiDate.month - 1,
+                guiDate.day
+            );
+            if (
+                targetDateTime >= startDateTime &&
+                targetDateTime <= new Date(2024, 10, 30)
+            ) {
                 currentDateTime = targetDateTime;
             }
         },
         dateProgress: 0,
-    }
+        pause() {
+            play = play === 0 ? 1 : 0;
+            playPauseButton.name(play === 0 ? "Play" : "Pause");
+        },
+    };
     dateFolder.add(guiDate, "day");
     dateFolder.add(guiDate, "month");
     dateFolder.add(guiDate, "year");
     dateFolder.add(guiDate, "setDate");
-    dateFolder.add(guiDate, "dateProgress", 0, 100, 1).onChange((value) => {
-        const targetDateTime = new Date(2023, 10, 1);
-        targetDateTime.setMilliseconds(value * 3.66 * 86400 * 1000);
-        if (targetDateTime >= startDateTime && targetDateTime <= new Date(2024, 10, 30)) {
-            currentDateTime = targetDateTime;
-        }
-    }).listen();
+    dateFolder
+        .add(guiDate, "dateProgress", 0, 100, 1)
+        .onChange((value) => {
+            const targetDateTime = new Date(2023, 10, 1);
+            targetDateTime.setMilliseconds(value * 3.66 * 86400 * 1000);
+            if (
+                targetDateTime >= startDateTime &&
+                targetDateTime <= new Date(2024, 10, 30)
+            ) {
+                currentDateTime = targetDateTime;
+            }
+        })
+        .listen();
+    const playPauseButton = dateFolder.add(guiDate, "pause").name("Pause");
 }
 
 function createDateElement() {
@@ -108,8 +128,9 @@ function createDateElement() {
     titleElement.style.color = "#fff";
     titleElement.style.fontWeight = "bold";
     titleElement.style.fontFamily = "Monospace";
-    titleElement.innerHTML = "Earthquakes in Europe, Africa, Oceania and Asia (2023 Nov - 2024 Nov)";
-    
+    titleElement.innerHTML =
+        "Earthquakes in Europe, Africa, Oceania and Asia (2023 Nov - 2024 Nov)";
+
     dateElement = document.createElement("div");
     dateElement.style.textAlign = "center";
     dateElement.style.color = "#fff";
@@ -118,7 +139,7 @@ function createDateElement() {
 
     header.appendChild(titleElement);
     header.appendChild(dateElement);
-    document.body.appendChild(header);
+    container.appendChild(header);
 }
 
 function drawEarthquakes(scene) {
@@ -126,6 +147,41 @@ function drawEarthquakes(scene) {
     removeNonVisibleEarthquakes(scene, filteredEarthquakes);
     addNewEarthquakes(scene, filteredEarthquakes);
     updateEarthquakeColors(scene);
+    updateEarthquakeRegistry();
+}
+
+function updateEarthquakeRegistry() {
+    const registry = document.getElementById("earthquake-registry");
+    registry.innerHTML = "";
+    currentEarthquakes.forEach((earthquake) => {
+        const dateTime = new Date(earthquake.earthquake.dateTime);
+        const item = document.createElement("div");
+        item.className = "earthquake-item";
+        item.style.color = "#000";
+        item.style.fontFamily = "Monospace";
+
+        const time = document.createElement("p");
+        time.innerHTML = `${dateTime.toUTCString()}`;
+        const place = document.createElement("p");
+        place.innerHTML = `${earthquake.earthquake.place}`;
+        const magnitude = document.createElement("p");
+        magnitude.innerHTML = `Magnitude: ${earthquake.earthquake.magnitude}`;
+        const depth = document.createElement("p");
+        depth.innerHTML = `Depth: ${earthquake.earthquake.depth} km`;
+        const latitude = document.createElement("p");
+        latitude.innerHTML = `Latitude: ${earthquake.earthquake.latitude}`;
+        const longitude = document.createElement("p");
+        longitude.innerHTML = `Longitude: ${earthquake.earthquake.longitude}`;
+
+        item.appendChild(time);
+        item.appendChild(place);
+        item.appendChild(magnitude);
+        item.appendChild(depth);
+        item.appendChild(latitude);
+        item.appendChild(longitude);
+
+        registry.appendChild(item);
+    });
 }
 
 function filterEarthquakes(earthquakes) {
@@ -183,7 +239,7 @@ function addNewEarthquakes(scene, visibleEarthquakes) {
 function updateEarthquakeColors(scene) {
     currentEarthquakes.forEach((earthquake) => {
         const dateTime = new Date(earthquake.earthquake.dateTime);
-        earthquake.mesh.material.color.add(new THREE.Color(0x000F00));
+        earthquake.mesh.material.color.add(new THREE.Color(0x000f00));
     });
 }
 
