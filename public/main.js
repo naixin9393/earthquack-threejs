@@ -9,7 +9,7 @@ function init() {
     const MaxLatitude = 72.5;
     const MinLongitude = -23.9;
     const MaxLongitude = 190.2;
-	const EarthquakeCsvFile = "assets/earthquakes.csv";
+    const EarthquakeCsvFile = "assets/earthquakes.csv";
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -21,15 +21,19 @@ function init() {
 
     camera.position.z = 5;
 
- 	const Renderer = new THREE.WebGLRenderer();
+    const Renderer = new THREE.WebGLRenderer();
     Renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(Renderer.domElement);
 
     const CameraControls = new OrbitControls(camera, Renderer.domElement);
 
     plane(0, 0, 0, 6.5, 5, scene);
-	
-	loadEarthquakeData(EarthquakeCsvFile);
+
+    const earthquakeData = loadEarthquakeData(EarthquakeCsvFile).then(
+        (earthquakes) => {
+            console.log(earthquakes);
+        }
+    );
 
     loop(scene, camera, Renderer);
 }
@@ -45,7 +49,7 @@ function plane(x, y, z, width, height, scene) {
     const plane = new THREE.Mesh(geometry, material);
     plane.position.set(x, y, z);
     scene.add(plane);
-	loadTexture("assets/europe-asia.png", plane, width, height);
+    loadTexture("assets/europe-asia.png", plane, width, height);
 }
 
 function loadTexture(url, map, mapWidth, mapHeight) {

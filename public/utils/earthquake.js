@@ -1,5 +1,5 @@
 export function loadEarthquakeData(csvFile) {
-    fetch(csvFile)
+    return fetch(csvFile)
         .then((response) => response.text())
         .then((data) => {
             const rows = data.split("\n");
@@ -11,21 +11,22 @@ export function loadEarthquakeData(csvFile) {
                 longitude: header.indexOf("longitude"),
                 depth: header.indexOf("depth"),
                 magnitude: header.indexOf("mag"),
-                place: header.indexOf("place")
-            }
+                place: header.indexOf("place"),
+            };
             for (let i = 1; i < rows.length; i++) {
-                const columns = rows[i].split(",");
+                const columns = rows[i]
+                    .replace(/"/g, "")
+                    .split(/(?<=[^\s]),(?=[^\s])/);
                 const earthquake = {
                     dateTime: columns[indexes.dateTime],
                     latitude: columns[indexes.latitude],
                     longitude: columns[indexes.longitude],
                     depth: columns[indexes.depth],
                     magnitude: columns[indexes.magnitude],
-                    place: columns[indexes.place]
+                    place: columns[indexes.place],
                 };
                 earthquakes.push(earthquake);
             }
-            console.log(earthquakes);
             return earthquakes;
         });
 }
