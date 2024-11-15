@@ -1,18 +1,22 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min";
 import { loadEarthquakeData } from "./utils/earthquake.js";
 
 let currentDateTime;
 let earthquakes;
 let currentEarthquakes = [];
 let dateElement;
+let guiDate;
 const mapWidth = 6.5;
 const mapHeight = 5;
+const startDateTime = new Date(2023, 10, 1);
+const endDateTime = new Date(2024, 10, 1);
+const gui = new GUI();
 
 init();
 
 function init() {
-    const startDateTime = new Date(2023, 11, 1);
     currentDateTime = startDateTime;
 
     const MinLatitude = -50.29;
@@ -30,6 +34,7 @@ function init() {
     );
 
     createDateElement();
+    createGui();
 
     camera.position.z = 5;
 
@@ -49,24 +54,71 @@ function init() {
 
 function loop(scene, camera, renderer) {
     requestAnimationFrame(() => loop(scene, camera, renderer));
-    currentDateTime = new Date(currentDateTime.getTime() + 100000);
+    updateTime();
     dateElement.innerHTML = currentDateTime.toString();
     drawEarthquakes(scene);
     renderer.render(scene, camera);
 }
 
+function updateTime() {
+    if (currentDateTime >= endDateTime) {
+        currentDateTime = startDateTime;
+    }
+    currentDateTime = new Date(currentDateTime.getTime() + 100000);
+    guiDate.dateProgress = (currentDateTime - startDateTime) / (endDateTime - startDateTime) * 100;
+    // guiDate.dateProgress = 5;
+    // gui.refresh();
+}
+
+function createGui() {
+    const dateFolder = gui.addFolder("Date");
+    guiDate = {
+        day: currentDateTime.getDate(),
+        month: currentDateTime.getMonth() + 1,
+        year: currentDateTime.getFullYear(),
+        setDate() {
+            const targetDateTime = new Date(guiDate.year, guiDate.month - 1, guiDate.day);
+            if (targetDateTime >= startDateTime && targetDateTime <= new Date(2024, 10, 30)) {
+                currentDateTime = targetDateTime;
+            }
+        },
+        dateProgress: 0,
+    }
+    dateFolder.add(guiDate, "day");
+    dateFolder.add(guiDate, "month");
+    dateFolder.add(guiDate, "year");
+    dateFolder.add(guiDate, "setDate");
+    dateFolder.add(guiDate, "dateProgress", 0, 100, 1).onChange((value) => {
+        const targetDateTime = new Date(2023, 10, 1);
+        targetDateTime.setMilliseconds(value * 3.66 * 86400 * 1000);
+        if (targetDateTime >= startDateTime && targetDateTime <= new Date(2024, 10, 30)) {
+            currentDateTime = targetDateTime;
+        }
+    }).listen();
+}
+
 function createDateElement() {
+    const header = document.createElement("div");
+    header.style.display = "flex";
+    header.style.flexDirection = "column";
+    header.style.background = "black";
+
+    const titleElement = document.createElement("div");
+    titleElement.style.textAlign = "center";
+    titleElement.style.color = "#fff";
+    titleElement.style.fontWeight = "bold";
+    titleElement.style.fontFamily = "Monospace";
+    titleElement.innerHTML = "Earthquakes in Europe, Africa, Oceania and Asia (2023 Nov - 2024 Nov)";
+    
     dateElement = document.createElement("div");
-    dateElement.style.position = "absolute";
-    dateElement.style.width = "100%";
     dateElement.style.textAlign = "center";
     dateElement.style.color = "#fff";
     dateElement.style.fontWeight = "bold";
-    dateElement.style.backgroundColor = "black";
-    dateElement.style.zIndex = "1";
     dateElement.style.fontFamily = "Monospace";
-    dateElement.innerHTML = "";
-    document.body.appendChild(dateElement);
+
+    header.appendChild(titleElement);
+    header.appendChild(dateElement);
+    document.body.appendChild(header);
 }
 
 function drawEarthquakes(scene) {
@@ -112,7 +164,8 @@ function addNewEarthquakes(scene, visibleEarthquakes) {
             }
         });
         if (!found) {
-            const geometry = new THREE.SphereGeometry(0.05, 4, 4);
+            const magnitude = parseFloat(earthquake.magnitude);
+            const geometry = new THREE.SphereGeometry(magnitude / 70, 10, 10);
             const material = new THREE.MeshBasicMaterial({ color: 0xdd0000 });
             const latitude = parseFloat(earthquake.latitude);
             const longitude = parseFloat(earthquake.longitude);
@@ -130,7 +183,7 @@ function addNewEarthquakes(scene, visibleEarthquakes) {
 function updateEarthquakeColors(scene) {
     currentEarthquakes.forEach((earthquake) => {
         const dateTime = new Date(earthquake.earthquake.dateTime);
-        earthquake.mesh.material.color.add(new THREE.Color(0x001100));
+        earthquake.mesh.material.color.add(new THREE.Color(0x000F00));
     });
 }
 
